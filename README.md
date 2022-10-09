@@ -18,4 +18,7 @@ Things to be done:<br>
 2. Figure out output and input  for Post and Head
 3. Figure out CGI extension
 
+### Update on 9/10/2022(4 PM)(Khoi)<br>
+Added header methods.
+
 
