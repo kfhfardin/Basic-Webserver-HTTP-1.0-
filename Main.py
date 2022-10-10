@@ -55,7 +55,7 @@ def response_header(location=None, authentication=None, server= f"EvanFardinKhoi
             header_str += f"{field_name[fields.index(i)]}: {i}\r\n"
     return f"{header_str}"
 
-def entity_header(allow=None,encoding=None,length=None,type=None,expiry=None,last_edit=None,ext=None):
+def entity_header(allow=None, encoding=None, length=None, type="text/html", expiry=None, last_edit=None, ext=None):
     header_str = ""
     fields = [allow,encoding,length,type,expiry,last_edit,ext]
     field_name = ["Allow","Content-Encoding","Content-Length","Content-Type","Expires","Last-Modified"]
