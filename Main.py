@@ -89,12 +89,12 @@ def process_GET(conn,data):
         temp_data=location_data[location_depth:]
         #try to find data in location
         try:
-            if html_check == -1 and htm_check ==-1:
-                try:
-                    temp_file=open(temp_data+ b'.html')
-                    temp_data=temp_data + b'.html'
-                except:
-                    temp_data=temp_data + b'.htm'                    
+            # if html_check == -1 and htm_check ==-1:
+            #     try:
+            #         temp_file=open(temp_data+ b'.html')
+            #         temp_data=temp_data + b'.html'
+            #     except:
+            #         temp_data=temp_data + b'.htm'                    
             file=open(temp_data)
             filedata=file.read()
             
@@ -133,16 +133,21 @@ def process_GET(conn,data):
     #if only file called      
     else:           
         final_location=file_directory + location_data 
+        print(f"\n\r-> Client Requested File-Location: {repr(final_location)}")
         try:   
-            if html_check == -1 and htm_check ==-1:
-                try:
-                    temp_file=open(final_location+ b'.html')
-                    final_location=final_location + b'.html'
-                except:
-                    final_location=final_location + b'.htm'               
-            file= open(final_location)
-            filedata = file.read()        
-        
+            # if html_check == -1 and htm_check ==-1:
+            #     try:
+            #         temp_file=open(final_location+ b'.html')
+            #         final_location=final_location + b'.html'
+            #     except:
+            #         final_location=final_location + b'.htm'               
+               
+
+            with open(final_location,'br') as file:
+                print(f"\n\r---> Server Identified File: {repr(file)}")
+                filedata = file.read()
+            print(f"\n\r------> File-Content extracted successfully!")
+
             if data[2] == b'HTTP/0.9' :  
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
@@ -153,7 +158,7 @@ def process_GET(conn,data):
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
-                response += bytes(filedata.encode(format))
+                response += (filedata)
                 response += b'\r\n\r\n'            
                 conn.send(response)
         except:
@@ -174,7 +179,7 @@ def process_GET(conn,data):
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)               
-    print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
+    print(f"\n\r-> Server responded on ({local_time()})::\n\r{headers}{file}\r\n\r\n")
     return
        
 #Head method     
