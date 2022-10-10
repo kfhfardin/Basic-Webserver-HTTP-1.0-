@@ -3,7 +3,7 @@
 #### Everytime a change is made a short update  of the change is written here with name.<br>
 #### Also comment the date,time and name of any updaates made in the comment section<br>
 
-### Update on 8/10/2022(10 PM)(Fardin)<br>
+### Update on 8/10/2022 (10 PM)(Fardin)<br>
 This is the first commit to the page.<br>
 The commit contains:<br> 
 1. 2 tests provided by the Professor
@@ -18,7 +18,11 @@ Things to be done:<br>
 2. Figure out output and input  for Post and Head
 3. Figure out CGI extension
 
-### Update on 9/10/2022(4 PM)(Khoi)<br>
+### Update on 9/10/2022 (4 PM) (Khoi)<br>
 Added header methods.
 Added server-side status outputs.
 
+### Update on 10/10/2022 (5 PM) (Khoi)<br>
+Added with open statement to open, read, and close files
+--> .img files can now be opened properly, due to the 'br' option
+--> Changed how the print(response) function behaves under GET request. Now it only prints out a shortened version of the response to GET.
