@@ -20,5 +20,5 @@ Things to be done:<br>
 
 ### Update on 9/10/2022(4 PM)(Khoi)<br>
 Added header methods.
-
+Added server-side status outputs.
 
