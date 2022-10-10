@@ -15,6 +15,10 @@ size=1024 #data receive size
 format="utf-8"
 
 #"""Main Methods"""
+def local_time():
+    dt = datetime.datetime.now().strftime("%a, %d-%b-%Y %H:%M:%S Local-Time")
+    return f"{dt}"
+
 def http_time():
     dt = datetime.datetime.now(datetime.timezone.utc)
     utc_time = dt.replace(tzinfo=datetime.timezone.utc)
@@ -46,7 +50,7 @@ def general_header(pragma=None,time=http_time()):
             header_str += f"{field_name[fields.index(i)]}: {i}\r\n"
     return f"{header_str}"
 
-def response_header(location=None, authentication=None, server= f"EvanFardinKhoi/1.0"):
+def response_header(location=None, authentication=None, server= f"EvanFardinKhoi/0.1"):
     header_str = ""
     fields = [location,server,authentication]
     field_name = ["Location", "Server","WWW-Authenticate"]
@@ -55,7 +59,7 @@ def response_header(location=None, authentication=None, server= f"EvanFardinKhoi
             header_str += f"{field_name[fields.index(i)]}: {i}\r\n"
     return f"{header_str}"
 
-def entity_header(allow=None,encoding=None,length=None,type=None,expiry=None,last_edit=None,ext=None):
+def entity_header(allow=None, encoding=None, length=None, type=None, expiry=None, last_edit=None, ext=None):
     header_str = ""
     fields = [allow,encoding,length,type,expiry,last_edit,ext]
     field_name = ["Allow","Content-Encoding","Content-Length","Content-Type","Expires","Last-Modified"]
@@ -102,7 +106,7 @@ def process_GET(conn,data):
                 #need to add headers
                 status = http_1_0_status(200)
                 response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header()}{entity_header()}"
+                headers = f"{general_header()}{response_header()}{entity_header()}\r\n"  
                 response += bytes(headers.encode(format))
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'
@@ -170,7 +174,7 @@ def process_GET(conn,data):
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)               
-    print(f"\n\rServer responded:\n\r{response}")
+    print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
     return
        
 #Head method     
@@ -188,6 +192,7 @@ def recv_data(conn):
                 temp_data=conn.recv(size)
                 data+=temp_data
                 line_end= data.find(b'\r\n\r\n')
+                print(f"\n\r-> Server intercepted on ({local_time()}):\n\r{repr(data)}")
                 if  line_end != -1:
                         return data[:line_end]
             except:
@@ -195,9 +200,11 @@ def recv_data(conn):
     
 #Method to Process CLient
 def client_process(conn,clientid):
-    data=recv_data(conn)    
+    data=recv_data(conn)
+    print(f"\n\r-> Package processed on ({local_time()}):\n\r{repr(data)}")
     if data == -1:
         conn.close()
+        print(f"\n\r{repr(clientid)} has disconnected on {http_time()}")
         return
     #Request method checks
     #splitting data into parts
@@ -213,6 +220,7 @@ def client_process(conn,clientid):
     if split_data[0]== b'POST':
         process_POST(conn,split_data)
     #closing connection
+    print(f"\n\r-> Connection with {repr(clientid)} is closed on {local_time()}")
     conn.close()
     
        
@@ -223,7 +231,7 @@ def main():
     web_server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     web_server.bind(BIND_VAR)
     web_server.listen(True)
-    print(f"\n\rServer is now running.\n\rClients must establish link to {IP}:{Port}\n\r")
+    print(f"\n\r\n\rServer is now running.\n\rClients must establish link to {IP}:{Port}\n\r")
     #infinite loop for accepting clients
     while True: 
         conn,clientid=web_server.accept()
