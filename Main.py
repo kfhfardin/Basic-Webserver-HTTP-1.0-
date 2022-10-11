@@ -28,7 +28,7 @@ def http_time():
     http_time = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
     return f"{http_time}"
 
-def http_1_0_status(code=500, reason=None, version="1.0"):
+def http_1_0_status(code=500, reason=None, version="1.0"): # Need to update if 1.1 but DONT CHANGE the default
     version = f"HTTP/{version}"
     fields = [version,code,reason]
     status_str = ""
@@ -88,14 +88,14 @@ def process_GET(conn,data):
     content_type_val= ""
     switch=False
     i=0
-    while switch is False:
-        index_val=location_data.find(file_ext_list[i])
-        if index_val != -1:
-            switch=True
-            general_type=iana_dict[file_ext_list[i]]
-            content_type_val= general_type +'/'+file_ext_list[i]
-            temp_type_val=file_ext_list[i]
-        i+=1
+    # while switch is False:
+    #     index_val=location_data.find(file_ext_list[i])
+    #     if index_val != -1:
+    #         switch=True
+    #         general_type=iana_dict[file_ext_list[i]]
+    #         content_type_val= general_type +'/'+file_ext_list[i]
+    #         temp_type_val=file_ext_list[i]
+    #     i+=1
       
     
     # if  content_type_val == "" :         
@@ -131,8 +131,10 @@ def process_GET(conn,data):
                 #need to add headers
                 status = http_1_0_status(200)
                 response += bytes(f"{status}".encode(format))
+                # This is where we need to find our content types
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"  
                 response += bytes(headers.encode(format))
+                resp_status_headers = response
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'
                 conn.send(response)
@@ -152,6 +154,7 @@ def process_GET(conn,data):
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
+                resp_status_headers = response
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)    
@@ -174,6 +177,7 @@ def process_GET(conn,data):
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
+                resp_status_headers = response
                 response += (filedata)
                 response += b'\r\n\r\n'            
                 conn.send(response)
@@ -211,6 +215,10 @@ def recv_data(conn):
         while True:
             try:
                 temp_data=conn.recv(size)
+                if temp_data == b'':
+                    print(f"\n\rServer has killed a connection on {http_time()}")
+                    conn.close()
+                    #print(f"\n\rServer has killed a connection on {http_time()}")
                 data+=temp_data
                 line_end= data.find(b'\r\n\r\n')
                 print(f"\n\r-> Server intercepted on ({local_time()}):\n\r{repr(data)}")
@@ -262,3 +270,9 @@ def main():
         print(f"\n\r({conn_time}) -> {repr(clientid)} has established a new connection.")
 
 main()
+
+#--------------------------------------------------------
+# For WOW factor I want to download multiple files for one connection
+# HTTP 1.0 closes the connection in between each file, but 1.1 does not close the connection each time
+# To do this I need to understand the problem, try to figure out how to code and talk with Fardin
+#--------------------------------------------------------
