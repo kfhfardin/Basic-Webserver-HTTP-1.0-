@@ -6,15 +6,29 @@ import os
 import datetime
 #Variables
 #IP=socket.gethostbyname("localhost") #IP Address
-IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
-#IP="10.30.69.119" #IP for Khoi
-Port=80 #Standard HTTP Port Number
-#Port=2022 #Port for unprivileged users
+#IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
+IP="10.30.69.119" #IP for Khoi
+#Port=80 #Standard HTTP Port Number
+Port=2022 #Port for unprivileged users
 BIND_VAR=(IP,Port) #Bindvariables for Socket Usae Later
 size=1024 #data receive size
 format="utf-8"
 file_ext_list=[]
-std_ext_dict=[]
+
+# Dictionaries for Standardising File Extensions
+app_std_ext={"xhtml":"xhtml+xml","xml":"xhtml+xml","json":"geo+json"}
+img_std_ext={"jpeg":"jpg"}
+txt_std_ext={"htm":"html","doc":"doc",}
+"""Media Types:
+.html: text/html
+.htm: NOT FOR SURE
+.js: text/javascript
+.css: text/css
+.xml: application/xhtml+xml
+.json: application/geo+json
+.xhtml: application/xhtml+xml
+.txt: text/plain 
+.rtf: application/rtf"""
 iana_dict={}
 
 #"""Main Methods"""
@@ -120,12 +134,14 @@ def process_GET(conn,data):
             #         temp_data=temp_data + b'.html'
             #     except:
             #         temp_data=temp_data + b'.htm'                    
-            file=open(temp_data)
-            filedata=file.read()
+            with open(final_location,'br') as file:
+                print(f"\n\r---> Server Identified File: {repr(file)}")
+                filedata = file.read()      
             
             if data[2] == b'HTTP/0.9' :  
                 response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'            
+                response += b'\r\n\r\n'
+                resp_status_headers = str(response)
                 conn.send(response)
             else:                
                 #need to add headers
@@ -146,7 +162,8 @@ def process_GET(conn,data):
             
             if data[2] == b'HTTP/0.9' :  
                 response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'            
+                response += b'\r\n\r\n'           
+                resp_status_headers = str(response) 
                 conn.send(response)
             else:                
                 #need to add headers
@@ -170,7 +187,8 @@ def process_GET(conn,data):
 
             if data[2] == b'HTTP/0.9' :  
                 response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'            
+                response += b'\r\n\r\n'       
+                resp_status_headers = str(response)
                 conn.send(response)
             else:                
                 status = http_1_0_status(200)
@@ -182,13 +200,16 @@ def process_GET(conn,data):
                 response += b'\r\n\r\n'            
                 conn.send(response)
         except:
+            print(f"\n\r------> File NOT located!")
             final_location=file_directory + b'/404.html'
-            file= open(final_location)
-            filedata = file.read()        
+            with open(final_location,'br') as file:
+                print(f"\n\r---> Server Identified File: {repr(file)}")
+                filedata = file.read()      
             
             if data[2] == b'HTTP/0.9' :  
                 response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'            
+                response += b'\r\n\r\n'
+                resp_status_headers = str(response)        
                 conn.send(response)
             else:               
                 status = http_1_0_status(404)
@@ -199,7 +220,7 @@ def process_GET(conn,data):
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)               
-    print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\r\n\r\n")
+    print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\\r\\n\\r\\n")
     return
        
 #Head method     
@@ -249,7 +270,7 @@ def client_process(conn,clientid):
     if split_data[0]== b'POST':
         process_POST(conn,split_data)
     #closing connection
-    print(f"\n\r-> Connection with {repr(clientid)} is closed on {local_time()}")
+    print(f"\n\r-> Closed connection -x-> {repr(clientid)} on {local_time()}")
     conn.close()
     
        
@@ -267,7 +288,7 @@ def main():
         new_client1=threading.Thread(target=client_process,args=(conn,clientid))
         new_client1.start()
         conn_time = http_time()
-        print(f"\n\r({conn_time}) -> {repr(clientid)} has established a new connection.")
+        print(f"\n\rNew connection established ---> {repr(clientid)} on ({conn_time})")
 
 main()
 
