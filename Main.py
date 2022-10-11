@@ -191,10 +191,11 @@ def process_GET(conn,data):
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
+                resp_status_headers = response
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)               
-    print(f"\n\r-> Server responded on ({local_time()})::\n\r{headers}{file}\r\n\r\n")
+    print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\r\n\r\n")
     return
        
 #Head method     
