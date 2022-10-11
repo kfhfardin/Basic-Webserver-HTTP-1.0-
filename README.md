@@ -26,3 +26,5 @@ Added server-side status outputs.
 Added with open statement to open, read, and close files
 --> .img files can now be opened properly, due to the 'br' option
 --> Changed how the print(response) function behaves under GET request. Now it only prints out a shortened version of the response to GET.
+
+# I added githib desktop (evan)
