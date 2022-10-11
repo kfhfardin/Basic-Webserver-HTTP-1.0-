@@ -6,13 +6,16 @@ import os
 import datetime
 #Variables
 #IP=socket.gethostbyname("localhost") #IP Address
-#IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
-IP="10.30.69.119" #IP for Khoi
-#Port=80 #Standard HTTP Port Number
-Port=2022 #Port for unprivileged users
+IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
+#IP="10.30.69.119" #IP for Khoi
+Port=80 #Standard HTTP Port Number
+#Port=2022 #Port for unprivileged users
 BIND_VAR=(IP,Port) #Bindvariables for Socket Usae Later
 size=1024 #data receive size
 format="utf-8"
+file_ext_list=[]
+std_ext_dict=[]
+iana_dict={}
 
 #"""Main Methods"""
 def local_time():
@@ -81,8 +84,30 @@ def process_GET(conn,data):
     #Studies Stripped data for location folder and then send the data back   
     location_data=data[1]
     #check for file type given or not
-    html_check=location_data.find(b'html')
-    htm_check=location_data.find(b'htm')
+    temp_type_val= ""
+    content_type_val= ""
+    switch=False
+    i=0
+    while switch is False:
+        index_val=location_data.find(file_ext_list[i])
+        if index_val != -1:
+            switch=True
+            general_type=iana_dict[file_ext_list[i]]
+            content_type_val= general_type +'/'+file_ext_list[i]
+            temp_type_val=file_ext_list[i]
+        i+=1
+      
+    
+    # if  content_type_val == "" :         
+    #     try:
+    #         temp_file=open(temp_data+ b'.html')
+    #         temp_data=temp_data + b'.html'
+    #     except:
+    #         temp_data=temp_data + b'.htm'            
+
+    
+    
+    #add if and else statements
     #address given check
     location_depth=location_data.find(file_directory)
     if location_depth != -1:
@@ -135,14 +160,6 @@ def process_GET(conn,data):
         final_location=file_directory + location_data 
         print(f"\n\r-> Client Requested File-Location: {repr(final_location)}")
         try:   
-            # if html_check == -1 and htm_check ==-1:
-            #     try:
-            #         temp_file=open(final_location+ b'.html')
-            #         final_location=final_location + b'.html'
-            #     except:
-            #         final_location=final_location + b'.htm'               
-               
-
             with open(final_location,'br') as file:
                 print(f"\n\r---> Server Identified File: {repr(file)}")
                 filedata = file.read()
@@ -153,7 +170,6 @@ def process_GET(conn,data):
                 response += b'\r\n\r\n'            
                 conn.send(response)
             else:                
-                #need to add headers
                 status = http_1_0_status(200)
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
@@ -170,8 +186,7 @@ def process_GET(conn,data):
                 response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)
-            else:                
-                #need to add headers
+            else:               
                 status = http_1_0_status(404)
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
