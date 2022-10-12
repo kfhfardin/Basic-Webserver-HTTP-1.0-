@@ -6,8 +6,8 @@ import os
 import datetime
 #Variables
 #IP=socket.gethostbyname("localhost") #IP Address
-#IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
-IP="10.30.69.119" #IP for Khoi
+IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
+#IP="10.30.69.119" #IP for Khoi
 #Port=80 #Standard HTTP Port Number
 Port=2022 #Port for unprivileged users
 BIND_VAR=(IP,Port) #Bindvariables for Socket Usae Later
