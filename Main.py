@@ -20,41 +20,48 @@ app_std_ext={"xhtml":"xhtml+xml","xml":"xhtml+xml","json":"geo+json"}
 img_std_ext={"jpeg":"jpg"}
 txt_std_ext={"htm":"html","doc":"doc",}
 """Media Types:
-.html: text/html
-.htm: text/html
+text/
 .js: text/javascript
+.py: text/x-script.phyton
+.txt: text/plain
 .css: text/css
-.xml: application/xhtml+xml
-.json: application/geo+json
-.xhtml: application/xhtml+xml
-.txt: text/plain 
-.rtf: application/rtf
+.htm: text/html
+.html: text/html
 
-.jpeg: BLANK
-.jpg: I didnt see anything for this
-.gif: BLANK
+applicaton/
+.pdf: application/pdf
+.rtf: application/rtf
+.zip: application/zip
+.jar: application/java-archive
+.doc: application/msword
+.docx: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+.json: application/geo+json
+.xml: application/xhtml+xml
+.xhtml: application/xhtml+xml
+
+.php: application/x-httpd-php
+
+image/
+.gif: image/gif
 .png: image/png
 .bmp: image/bmp
-.apng: BLANK
+.ico: image/vnd.microsoft.icon
 .jpx: image/jpx
 .jp2: image/jp2
-.webp: NOT ON CITE
-.ico: NOT ON CITE
+.jpg: image/jpeg
+.jpeg: image/jpeg
+.apng: image/apng
+.webp: image/webp
 
-.mp3: NOT ON CITE
-.wav: NOT ON CITE
-.pdf: application/pdf
-.avi:
-.mpg:
-.mpeg:
-.jar:
-.zip:
-.doc:
-.docx:
-.zip: application/zip
 
-.php:
-.py:
+audio/
+.mp3: audio/mpeg3
+.wav: audio/wav
+.mpg: audio/mpeg
+
+video/
+.avi: video/x-msvideo
+.mpeg: video/mpeg
 """
 iana_dict={}
 
