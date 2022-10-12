@@ -38,7 +38,6 @@ applicaton/
 .json: application/geo+json
 .xml: application/xhtml+xml
 .xhtml: application/xhtml+xml
-
 .php: application/x-httpd-php
 
 image/
