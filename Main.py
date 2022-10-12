@@ -7,13 +7,14 @@ import datetime
 #Variables
 #IP=socket.gethostbyname("localhost") #IP Address
 IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
-#IP="10.30.69.119" #IP for Khoi
+# IP if-statement
+if socket.gethostname() == 'Khois-MacBook-Pro.local':
+    IP="10.30.69.119" #IP for Khoi
 Port=80 #Standard HTTP Port Number
-#Port=2022 #Port for unprivileged users
-BIND_VAR=(IP,Port) #Bindvariables for Socket Usae Later
+unprivileged_port=2022 #Port for unprivileged users
+BIND_VAR=(IP,Port) #Bind variables for Socket Use Later
 size=1024 #data receive size
 format="utf-8"
-file_ext_list=[]
 
 # Dictionaries for IANA MIME Types from File Extensions
 """
@@ -71,17 +72,29 @@ video_std_ext={".avi":"video/x-msvideo", ".mpeg":"video/mpeg"}
 # Merging all dictionaries for conversions to MIME type
 iana_dict = {**txt_std_ext, **app_std_ext, **audio_std_ext, **img_std_ext, **video_std_ext}
 
-#"""Main Methods"""
+#"""MAIN METHODS"""
+
+# Method to get supported MIME types
+def mime_type(file_ext):
+    try:
+        kind = iana_dict[".xlsx"]
+    except:
+        kind = None
+    return kind
+
+# Method to get local time
 def local_time():
     dt = datetime.datetime.now().strftime("%a, %d-%b-%Y %H:%M:%S Local-Time")
     return f"{dt}"
 
+# Method to get local time in accordance with HTTP/1.0
 def http_time():
     dt = datetime.datetime.now(datetime.timezone.utc)
     utc_time = dt.replace(tzinfo=datetime.timezone.utc)
     http_time = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
     return f"{http_time}"
 
+# Method to generate a HTTP/1.0 status line
 def http_1_0_status(code=500, reason=None, version="1.0"): # Need to update if 1.1 but DONT CHANGE the default
     version = f"HTTP/{version}"
     fields = [version,code,reason]
@@ -130,14 +143,14 @@ def entity_header(allow=None, encoding=None, length=None, type=None, expiry=None
 
 
 
-#Get Method
-def process_GET(conn,data):
-    #file path    
+# GET Method
+def process_GET(conn,data,HEAD_request=False):
+    # file path    
     file_directory=b'AllFiles'   
     response=b''        
-    #Studies Stripped data for location folder and then send the data back   
+    # Studies Stripped data for location folder and then send the data back   
     location_data=data[1]
-    #check for file type given or not
+    # check for file type given or not
     temp_type_val= ""
     content_type_val= ""
     switch=False
@@ -161,12 +174,12 @@ def process_GET(conn,data):
 
     
     
-    #add if and else statements
-    #address given check
+    # add if and else statements
+    # address given check
     location_depth=location_data.find(file_directory)
     if location_depth != -1:
         temp_data=location_data[location_depth:]
-        #try to find data in location
+        # try to find data in location
         try:
             # if html_check == -1 and htm_check ==-1:
             #     try:
@@ -179,43 +192,47 @@ def process_GET(conn,data):
                 filedata = file.read()      
             
             if data[2] == b'HTTP/0.9' :  
-                response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'
                 resp_status_headers = str(response)
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
+                response += b'\r\n\r\n'
                 conn.send(response)
             else:                
-                #need to add headers
+                # need to add headers
                 status = http_1_0_status(200)
                 response += bytes(f"{status}".encode(format))
                 # This is where we need to find our content types
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"  
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
-                response += bytes(filedata.encode(format))
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'
                 conn.send(response)
-        #if file not found send 404 response
+        # if file not found send 404 response
         except:
             final_location=file_directory + b'/404.html'
             file= open(final_location)
             filedata = file.read()        
             
             if data[2] == b'HTTP/0.9' :  
-                response += bytes(filedata.encode(format))
+                resp_status_headers = str(response)
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'           
-                resp_status_headers = str(response) 
                 conn.send(response)
             else:                
-                #need to add headers
+                # need to add headers
                 status = http_1_0_status(404)
                 response += bytes(f"{status}".encode(format))
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
-                response += bytes(filedata.encode(format))
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)    
-    #if only file called      
+    # if only file called      
     else:           
         final_location=file_directory + location_data 
         print(f"\n\r-> Client Requested File-Location: {repr(final_location)}")
@@ -226,9 +243,10 @@ def process_GET(conn,data):
             print(f"\n\r------> File-Content extracted successfully!")
 
             if data[2] == b'HTTP/0.9' :  
-                response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'       
                 resp_status_headers = str(response)
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
+                response += b'\r\n\r\n'       
                 conn.send(response)
             else:                
                 status = http_1_0_status(200)
@@ -236,7 +254,8 @@ def process_GET(conn,data):
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
-                response += (filedata)
+                if not HEAD_request:
+                    response += (filedata)
                 response += b'\r\n\r\n'            
                 conn.send(response)
         except:
@@ -247,9 +266,10 @@ def process_GET(conn,data):
                 filedata = file.read()      
             
             if data[2] == b'HTTP/0.9' :  
-                response += bytes(filedata.encode(format))
+                resp_status_headers = str(response)
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'
-                resp_status_headers = str(response)        
                 conn.send(response)
             else:               
                 status = http_1_0_status(404)
@@ -257,20 +277,25 @@ def process_GET(conn,data):
                 headers = f"{general_header()}{response_header()}{entity_header()}\r\n"
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
-                response += bytes(filedata.encode(format))
+                if not HEAD_request:
+                    response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'            
                 conn.send(response)               
-    print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\\r\\n\\r\\n")
+    if not HEAD_request:
+        print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\\r\\n\\r\\n")
+    elif HEAD_request:
+        print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
     return
-       
-#Head method     
+
+# HEAD method
 def process_HEAD(conn,data):
-    x=0
-#Post Method
+    process_GET(conn,data,HEAD_request=True)
+
+# POST Method
 def process_POST(conn,data):
     x=0
 
-#Method to Receive Data
+# Method to Receive Data
 def recv_data(conn):
         data=b''
         while True:
@@ -279,7 +304,6 @@ def recv_data(conn):
                 if temp_data == b'':
                     print(f"\n\rServer has killed a connection on {http_time()}")
                     conn.close()
-                    #print(f"\n\rServer has killed a connection on {http_time()}")
                 data+=temp_data
                 line_end= data.find(b'\r\n\r\n')
                 print(f"\n\r-> Server intercepted on ({local_time()}):\n\r{repr(data)}")
@@ -288,7 +312,7 @@ def recv_data(conn):
             except:
                 return -1
     
-#Method to Process CLient
+# Method to Process CLient
 def client_process(conn,clientid):
     data=recv_data(conn)
     print(f"\n\r-> Package processed on ({local_time()}):\n\r{repr(data)}")
@@ -296,33 +320,40 @@ def client_process(conn,clientid):
         conn.close()
         print(f"\n\r{repr(clientid)} has disconnected on {http_time()}")
         return
-    #Request method checks
-    #splitting data into parts
+    # request method checks
+    # splitting data into parts
     split_data=data.split()
-    #GET check
+    # GET check
     if split_data[0]== b'GET':
         process_GET(conn,split_data)        
-    #head_check    
+    # HEAD check    
     if split_data[0]== b'HEAD':
         process_HEAD(conn,split_data)    
         
-    #post_check    
+    # POST check    
     if split_data[0]== b'POST':
         process_POST(conn,split_data)
-    #closing connection
+    # closing connection
     print(f"\n\r-> Closed connection -x-> {repr(clientid)} on {local_time()}")
     conn.close()
     
        
     
-#Method to start connection
+# Method to start connection
 def main():    
-    #creating Seperate Threads       
+    # creating Seperate Threads       
     web_server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    web_server.bind(BIND_VAR)
+    try:
+        web_server.bind(BIND_VAR)
+    except:
+        Port=unprivileged_port
+        BIND_VAR=(IP,Port)
+        web_server.bind(BIND_VAR)
     web_server.listen(True)
-    print(f"\n\r\n\rServer is now running.\n\rClients must establish link to {IP}:{Port}\n\r")
-    #infinite loop for accepting clients
+    print(f"\n\r\n\rServer is now running.\n\rClients can establish new connections to http://{IP}:{Port}/\n\r")
+    if IP=='127.0.0.1':
+        print(f"The current host IP is a loopback address, so only this machine can connect to the current server.\n\rPlease manually check for your IPv4 address then enter it to if-statement for IP address on line 10.\n\r")
+    # infinite loop for accepting clients
     while True: 
         conn,clientid=web_server.accept()
         new_client1=threading.Thread(target=client_process,args=(conn,clientid))
