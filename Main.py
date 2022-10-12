@@ -16,10 +16,7 @@ format="utf-8"
 file_ext_list=[]
 
 # Dictionaries for Standardising File Extensions
-app_std_ext={"xhtml":"xhtml+xml","xml":"xhtml+xml","json":"geo+json"}
-img_std_ext={"jpeg":"jpg"}
-txt_std_ext={"htm":"html","doc":"doc",}
-"""Media Types:
+"""
 text/
 .js: text/javascript
 .py: text/x-script.phyton
@@ -27,7 +24,9 @@ text/
 .css: text/css
 .htm: text/html
 .html: text/html
-
+"""
+txt_std_ext={"htm":"html","doc":"doc",}
+"""
 applicaton/
 .pdf: application/pdf
 .rtf: application/rtf
@@ -39,7 +38,9 @@ applicaton/
 .xml: application/xhtml+xml
 .xhtml: application/xhtml+xml
 .php: application/x-httpd-php
-
+"""
+app_std_ext={"xhtml":"xhtml+xml","xml":"xhtml+xml","json":"geo+json"}
+"""
 image/
 .gif: image/gif
 .png: image/png
@@ -51,17 +52,22 @@ image/
 .jpeg: image/jpeg
 .apng: image/apng
 .webp: image/webp
-
-
+"""
+img_std_ext={"jpeg":"jpg"}
+"""
 audio/
 .mp3: audio/mpeg3
 .wav: audio/wav
 .mpg: audio/mpeg
-
+"""
+audio_std_ext={}
+"""
 video/
 .avi: video/x-msvideo
 .mpeg: video/mpeg
 """
+video_std_ext={}
+
 iana_dict={}
 
 #"""Main Methods"""
