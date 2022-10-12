@@ -15,7 +15,7 @@ size=1024 #data receive size
 format="utf-8"
 file_ext_list=[]
 
-# Dictionaries for Standardising File Extensions
+# Dictionaries for IANA MIME Types from File Extensions
 """
 text/
 .js: text/javascript
@@ -25,7 +25,7 @@ text/
 .htm: text/html
 .html: text/html
 """
-txt_std_ext={"htm":"html","doc":"doc",}
+txt_std_ext={".js":"text/javascript", ".py":"text/x-script.phyton", ".txt":"text/plain", ".css": "text/css", ".htm":"text/html", ".html":"text/html"}
 """
 applicaton/
 .pdf: application/pdf
@@ -39,7 +39,7 @@ applicaton/
 .xhtml: application/xhtml+xml
 .php: application/x-httpd-php
 """
-app_std_ext={"xhtml":"xhtml+xml","xml":"xhtml+xml","json":"geo+json"}
+app_std_ext={".pdf":"application/pdf", ".rtf":"application/rtf", ".zip":"application/zip", ".jar":"application/java-archive", ".doc":"application/msword", ".docx":"application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".json":"application/geo+json", ".xml":"application/xhtml+xml", ".xhtml":"application/xhtml+xml", ".php":"application/x-httpd-php"}
 """
 image/
 .gif: image/gif
@@ -53,22 +53,23 @@ image/
 .apng: image/apng
 .webp: image/webp
 """
-img_std_ext={"jpeg":"jpg"}
+img_std_ext={".gif":"image/gif", ".png":"image/png", ".bmp":"image/bmp", ".ico":"image/vnd.microsoft.icon", ".jpx":"image/jpx", ".jp2":"image/jp2", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".apng":"image/apng", ".webp":"image/webp"}
 """
 audio/
 .mp3: audio/mpeg3
 .wav: audio/wav
 .mpg: audio/mpeg
 """
-audio_std_ext={}
+audio_std_ext={".mp3":"audio/mpeg3", ".wav":"audio/wav", ".mpg":"audio/mpeg"}
 """
 video/
 .avi: video/x-msvideo
 .mpeg: video/mpeg
 """
-video_std_ext={}
+video_std_ext={".avi":"video/x-msvideo", ".mpeg":"video/mpeg"}
 
-iana_dict={}
+# Merging all dictionaries for conversions to MIME type
+iana_dict = {**txt_std_ext, **app_std_ext, **audio_std_ext, **img_std_ext, **video_std_ext}
 
 #"""Main Methods"""
 def local_time():
