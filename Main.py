@@ -21,14 +21,41 @@ img_std_ext={"jpeg":"jpg"}
 txt_std_ext={"htm":"html","doc":"doc",}
 """Media Types:
 .html: text/html
-.htm: NOT FOR SURE
+.htm: text/html
 .js: text/javascript
 .css: text/css
 .xml: application/xhtml+xml
 .json: application/geo+json
 .xhtml: application/xhtml+xml
 .txt: text/plain 
-.rtf: application/rtf"""
+.rtf: application/rtf
+
+.jpeg: BLANK
+.jpg: I didnt see anything for this
+.gif: BLANK
+.png: image/png
+.bmp: image/bmp
+.apng: BLANK
+.jpx: image/jpx
+.jp2: image/jp2
+.webp: NOT ON CITE
+.ico: NOT ON CITE
+
+.mp3: NOT ON CITE
+.wav: NOT ON CITE
+.pdf: application/pdf
+.avi:
+.mpg:
+.mpeg:
+.jar:
+.zip:
+.doc:
+.docx:
+.zip: application/zip
+
+.php:
+.py:
+"""
 iana_dict={}
 
 #"""Main Methods"""
