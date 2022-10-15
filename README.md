@@ -27,5 +27,13 @@ Added with open statement to open, read, and close files
 --> .img files can now be opened properly, due to the 'br' option
 --> Changed how the print(response) function behaves under GET request. Now it only prints out a shortened version of the response to GET.
 
-## Update on 11/10/2022 (1 PM) (Evan and Khoi)
+### Update on 11/10/2022 (1 PM) (Evan and Khoi)<br>
 fixed the inf b'' sending error
+
+# Update on 12/10/2022 (0 AM) (Khoi)<br>
+Major updates to: IP & Port check, GET & HEAD methods, MIME type assignment method
+1. Code now checks for loopback IP address. If detected, it'll print out a note on server side.
+2. Code now checks for permission to run on default port 80. If error, server will now be automatically be redirected to the unprivileged_port instead.
+3. Added a method that takes in file extensions and return their corresponding MIME types in accordance with IANA.
+4. Modify GET method to not include Entity-Body when the HEAD method calls it instead.
+5. Added HEAD method, which "is identical to GET except that the server must not return any Entity-Body in the response" (RFC 1945).
