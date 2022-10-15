@@ -11,7 +11,7 @@ IP=socket.gethostbyname(socket.gethostname()) #IP All Usage
 if socket.gethostname() == 'Khois-MacBook-Pro.local':
     IP="10.30.69.119" #IP for Khoi
 Port=80 #Standard HTTP Port Number
-unprivileged_port=2022 #Port for unprivileged users
+unprivileged_port=2021 #Port for unprivileged users
 BIND_VAR=(IP,Port) #Bind variables for Socket Use Later
 size=1024 #data receive size
 format="utf-8"
@@ -144,54 +144,35 @@ def entity_header(allow=None, encoding=None, length=None, type=None, expiry=None
 
 
 # GET Method
-def process_GET(conn,data,HEAD_request=False):
+def process_GET(conn,data_ls,HEAD_request=False):
     # file path    
     file_directory=b'AllFiles'   
     response=b''        
     # Studies Stripped data for location folder and then send the data back   
-    location_data=data[1]
+    location_data=data_ls[1]
     # check for file type given or not
     temp_type_val= ""
-    content_type_val= ""
-    switch=False
-    i=0
-    # while switch is False:
-    #     index_val=location_data.find(file_ext_list[i])
-    #     if index_val != -1:
-    #         switch=True
-    #         general_type=iana_dict[file_ext_list[i]]
-    #         content_type_val= general_type +'/'+file_ext_list[i]
-    #         temp_type_val=file_ext_list[i]
-    #     i+=1
-      
-    
-    # if  content_type_val == "" :         
-    #     try:
-    #         temp_file=open(temp_data+ b'.html')
-    #         temp_data=temp_data + b'.html'
-    #     except:
-    #         temp_data=temp_data + b'.htm'            
-
-    
-    
+    content_type_val= ""          
     # add if and else statements
     # address given check
+    #HTTP 0.9 check
+    try:
+        http_0_9 = b'HTTP' not in data_ls[2]
+    except:
+        http_0_9 = True
+    
     location_depth=location_data.find(file_directory)
     if location_depth != -1:
-        temp_data=location_data[location_depth:]
+        # temp_data=location_data[location_depth:]
         # try to find data in location
-        try:
-            # if html_check == -1 and htm_check ==-1:
-            #     try:
-            #         temp_file=open(temp_data+ b'.html')
-            #         temp_data=temp_data + b'.html'
-            #     except:
-            #         temp_data=temp_data + b'.htm'                    
+        try: 
+            final_location=location_data[location_depth:]  
+            print(final_location)                      
             with open(final_location,'br') as file:
                 print(f"\n\r---> Server Identified File: {repr(file)}")
                 filedata = file.read()      
             
-            if data[2] == b'HTTP/0.9' :  
+            if http_0_9:  
                 resp_status_headers = str(response)
                 if not HEAD_request:
                     response += bytes(filedata.encode(format))
@@ -206,19 +187,19 @@ def process_GET(conn,data,HEAD_request=False):
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
-                    response += bytes(filedata.encode(format))
+                    response += filedata
                 response += b'\r\n\r\n'
                 conn.send(response)
         # if file not found send 404 response
         except:
             final_location=file_directory + b'/404.html'
-            file= open(final_location)
-            filedata = file.read()        
-            
-            if data[2] == b'HTTP/0.9' :  
+            with open(final_location,'br') as file:
+                print(f"\n\r---> Server Identified File: {repr(file)}")
+                filedata = file.read()        
+            if http_0_9:  
                 resp_status_headers = str(response)
                 if not HEAD_request:
-                    response += bytes(filedata.encode(format))
+                    response += filedata
                 response += b'\r\n\r\n'           
                 conn.send(response)
             else:                
@@ -229,7 +210,7 @@ def process_GET(conn,data,HEAD_request=False):
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
-                    response += bytes(filedata.encode(format))
+                    response += filedata
                 response += b'\r\n\r\n'            
                 conn.send(response)    
     # if only file called      
@@ -242,10 +223,10 @@ def process_GET(conn,data,HEAD_request=False):
                 filedata = file.read()
             print(f"\n\r------> File-Content extracted successfully!")
 
-            if data[2] == b'HTTP/0.9' :  
+            if http_0_9:  
                 resp_status_headers = str(response)
                 if not HEAD_request:
-                    response += bytes(filedata.encode(format))
+                    response += filedata
                 response += b'\r\n\r\n'       
                 conn.send(response)
             else:                
@@ -265,10 +246,10 @@ def process_GET(conn,data,HEAD_request=False):
                 print(f"\n\r---> Server Identified File: {repr(file)}")
                 filedata = file.read()      
             
-            if data[2] == b'HTTP/0.9' :  
+            if http_0_9:  
                 resp_status_headers = str(response)
                 if not HEAD_request:
-                    response += bytes(filedata.encode(format))
+                    response += filedata
                 response += b'\r\n\r\n'
                 conn.send(response)
             else:               
@@ -278,7 +259,7 @@ def process_GET(conn,data,HEAD_request=False):
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
-                    response += bytes(filedata.encode(format))
+                    response += filedata
                 response += b'\r\n\r\n'            
                 conn.send(response)               
     if not HEAD_request:
@@ -323,6 +304,7 @@ def client_process(conn,clientid):
     # request method checks
     # splitting data into parts
     split_data=data.split()
+    print(split_data)
     # GET check
     if split_data[0]== b'GET':
         process_GET(conn,split_data)        
