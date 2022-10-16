@@ -1,8 +1,10 @@
 #then create location
 #imports
+from base64 import encode
 import socket
 import threading
 import os
+import sys
 import datetime
 #Variables
 #IP=socket.gethostbyname("localhost") #IP Address
@@ -158,8 +160,9 @@ def entity_header (allow=None, encoding=None, length=None, type=None, expiry=Non
 
 
 
-# GET Method
-def process_GET(conn,data_ls,HEAD_request=False):
+# GET Method 
+def process_GET(conn,data_ls,data,HEAD_request=False): 
+    Windows = (sys.platform=="win32")
     # file path
     file_dir = "AllFiles"
     file_directory = bytes(file_dir.encode(format))
@@ -169,20 +172,31 @@ def process_GET(conn,data_ls,HEAD_request=False):
     location_data = None
     abs_URI = None
 
-    abs_req_path = bytes(f"{os.getcwd()}/{file_dir}{str(location_req)[2:-1]}".encode(format))
+ 
+    abs_req_path_f = f"{os.getcwd()}/{file_dir}{str(location_req)[2:-1]}"
+    # print(f"\n\r-> Request-path entered as:\n\r{abs_req_path_f}")
+    abs_req_path_f = abs_req_path_f.replace(f"{file_dir}/{file_dir}",f"{file_dir}")
+    # print(f"\n\r-> Request-path changed to:\n\r{abs_req_path_f}")
+    if Windows:
+        abs_req_path_f = abs_req_path_f.replace(f"/",f"\\")
+    abs_req_path = bytes(abs_req_path_f.encode(format))
     # print(f"\n\r-> Request-path processed as:\n\r{abs_req_path}")
     if os.path.isdir(abs_req_path):
-        # print(f"\n\r-> Requested access to local directory:\n\r{abs_req_path}")
+        print(f"\n\r-> Requested access to local directory:\n\r{abs_req_path}")
         name_to_check = None
         location_data = location_req
     else:
         separator = location_req.rindex(b"/")
         parent_path = location_req[:separator]
         name_to_check = location_req[separator+1:]
-        abs_parent_path = bytes(f"{os.getcwd()}/{file_dir}{str(parent_path)[2:-1]}".encode(format))
-        # print(f"\n\r-> Requested access to local directory:\n\r{abs_parent_path}")
+        abs_parent_path_f = f"{os.getcwd()}/{file_dir}{str(parent_path)[2:-1]}"
+        abs_parent_path_f = abs_parent_path_f.replace(f'{file_dir}/{file_dir}',f'{file_dir}')
+        if Windows:
+            abs_parent_path_f = abs_parent_path_f.replace(f"/",f"\\")
+        abs_parent_path = bytes(abs_parent_path_f.encode(format))
+        print(f"\n\r-> Requested access to local directory:\n\r{abs_parent_path}")
         parent_folder = os.listdir(abs_parent_path)
-        # print(f"\n\r---> Checking local directory's contents:\n\r{parent_folder}")
+        print(f"\n\r---> Checking local directory's contents:\n\r{parent_folder}")
         file_404 = True
         for item in parent_folder:
             try:
@@ -191,7 +205,10 @@ def process_GET(conn,data_ls,HEAD_request=False):
                 item_no_ext = None
             if name_to_check in [item, item_no_ext]:
                 file_name = str(item)[2:-1]
-                location_data = bytes(f"{str(parent_path)[2:-1]}/{file_name}".encode(format))
+                if Windows:
+                    location_data = bytes(f"{str(parent_path)[2:-1]}\\{file_name}".encode(format))
+                else:
+                    location_data = bytes(f"{str(parent_path)[2:-1]}/{file_name}".encode(format))
                 file_404 = False
         if file_404:
             location_data = location_req
@@ -232,7 +249,7 @@ def process_GET(conn,data_ls,HEAD_request=False):
             
             if http_0_9:  
                 resp_status_headers = str(response)
-                if not HEAD_request:
+                if not HEAD_request: # Might need POST here so wait on this
                     response += bytes(filedata.encode(format))
                 response += b'\r\n\r\n'
                 conn.send(response)
@@ -327,13 +344,29 @@ def process_GET(conn,data_ls,HEAD_request=False):
     return
 
 # HEAD method
-def process_HEAD(conn,data):
-    process_GET(conn,data,HEAD_request=True)
+def process_HEAD(conn,data_ls,data):
+    process_GET(conn,data_ls,data,HEAD_request=True)
 
 # POST Method
-def process_POST(conn,data):
-    x=0
+def process_POST(conn,data_ls,data):
+    Windows = (sys.platform=="win32")
+    file_dir = "AllFiles"
+    file_directory = bytes(file_dir.encode(format))
+    response=b''
+    # Studies Stripped data for location folder and then send the data back   
+    location_req=data_ls[1]
+    location_data = None
+    abs_URI = None
 
+    abs_req_path_f = f"{os.getcwd()}/{file_dir}{str(location_req)[2:-1]}"
+    # print(f"\n\r-> Request-path entered as:\n\r{abs_req_path_f}")
+    abs_req_path_f = abs_req_path_f.replace(f"{file_dir}/{file_dir}",f"{file_dir}")
+    # print(f"\n\r-> Request-path changed to:\n\r{abs_req_path_f}")
+    if Windows:
+        abs_req_path_f = abs_req_path_f.replace(f"/",f"\\")
+    abs_req_path = bytes(abs_req_path_f.encode(format))
+     # modify on the f string if needed & force new byte string to be new f string encoded
+    
 # Method to Receive Data
 def recv_data(conn):
         data=b''
@@ -368,14 +401,13 @@ def client_process(conn,clientid):
     # print(f"\n\r-> Package processed as:\n\r{repr(split_data)}")
     # GET check
     if split_data[0]== b'GET':
-        process_GET(conn,split_data)        
+        process_GET(conn,split_data,data)        
     # HEAD check    
     if split_data[0]== b'HEAD':
-        process_HEAD(conn,split_data)    
-        
+        process_HEAD(conn,split_data,data) 
     # POST check    
     if split_data[0]== b'POST':
-        process_POST(conn,split_data)
+        process_POST(conn,split_data,data)
     # closing connection
     print(f"\n\r***---> Closed connection --x--> {repr(clientid)} on ({local_time()})")
     conn.close()
@@ -408,9 +440,3 @@ def main():
         new_client1.start()
 
 main()
-
-#--------------------------------------------------------
-# For WOW factor I want to download multiple files for one connection
-# HTTP 1.0 closes the connection in between each file, but 1.1 does not close the connection each time
-# To do this I need to understand the problem, try to figure out how to code and talk with Fardin
-#--------------------------------------------------------
