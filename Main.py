@@ -16,65 +16,65 @@ BIND_VAR=(IP,Port) #Bind variables for Socket Use Later
 size=1024 #data receive size
 format="utf-8"
 
-# Dictionaries for IANA MIME Types from File Extensions
-"""
-text/
-.js: text/javascript
-.py: text/x-script.phyton
-.txt: text/plain
-.css: text/css
-.htm: text/html
-.html: text/html
-"""
-txt_std_ext={".js":"text/javascript", ".py":"text/x-script.phyton", ".txt":"text/plain", ".css": "text/css", ".htm":"text/html", ".html":"text/html"}
-"""
-applicaton/
-.pdf: application/pdf
-.rtf: application/rtf
-.zip: application/zip
-.jar: application/java-archive
-.doc: application/msword
-.docx: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-.json: application/geo+json
-.xml: application/xhtml+xml
-.xhtml: application/xhtml+xml
-.php: application/x-httpd-php
-"""
-app_std_ext={".pdf":"application/pdf", ".rtf":"application/rtf", ".zip":"application/zip", ".jar":"application/java-archive", ".doc":"application/msword", ".docx":"application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".json":"application/geo+json", ".xml":"application/xhtml+xml", ".xhtml":"application/xhtml+xml", ".php":"application/x-httpd-php"}
-"""
-image/
-.gif: image/gif
-.png: image/png
-.bmp: image/bmp
-.ico: image/vnd.microsoft.icon
-.jpx: image/jpx
-.jp2: image/jp2
-.jpg: image/jpeg
-.jpeg: image/jpeg
-.apng: image/apng
-.webp: image/webp
-"""
-img_std_ext={".gif":"image/gif", ".png":"image/png", ".bmp":"image/bmp", ".ico":"image/vnd.microsoft.icon", ".jpx":"image/jpx", ".jp2":"image/jp2", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".apng":"image/apng", ".webp":"image/webp"}
-"""
-audio/
-.mp3: audio/mpeg3
-.wav: audio/wav
-.mpg: audio/mpeg
-"""
-audio_std_ext={".mp3":"audio/mpeg3", ".wav":"audio/wav", ".mpg":"audio/mpeg"}
-"""
-video/
-.avi: video/x-msvideo
-.mpeg: video/mpeg
-"""
-video_std_ext={".avi":"video/x-msvideo", ".mpeg":"video/mpeg"}
+txt_std_ext={
+    ".js":"text/javascript",
+    ".py":"text/x-script.phyton",
+    ".txt":"text/plain",
+    ".css": "text/css",
+    ".htm":"text/html",
+    ".html":"text/html"
+}
+"""text/"""
+
+app_std_ext={
+    ".pdf":"application/pdf",
+    ".rtf":"application/rtf",
+    ".zip":"application/zip",
+    ".jar":"application/java-archive",
+    ".doc":"application/msword",
+    ".docx":"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".json":"application/geo+json",
+    ".xml":"application/xhtml+xml",
+    ".xhtml":"application/xhtml+xml",
+    ".php":"application/x-httpd-php"
+}
+"""applicaton/"""
+
+img_std_ext={
+    ".gif":"image/gif",
+    ".png":"image/png",
+    ".bmp":"image/bmp",
+    ".ico":"image/vnd.microsoft.icon",
+    ".jpx":"image/jpx",
+    ".jp2":"image/jp2",
+    ".jpg":"image/jpeg",
+    ".jpeg":"image/jpeg",
+    ".apng":"image/apng",
+    ".webp":"image/webp"
+}
+"""image/"""
+
+audio_std_ext={
+    ".mp3":"audio/mpeg3",
+    ".wav":"audio/wav",
+    ".mpg":"audio/mpeg"
+}
+"""audio/"""
+
+video_std_ext={
+    ".avi":"video/x-msvideo",
+    ".mpeg":"video/mpeg"
+}
+"""video/"""
 
 # Merging all dictionaries for conversions to MIME type
 iana_dict = {**txt_std_ext, **app_std_ext, **audio_std_ext, **img_std_ext, **video_std_ext}
+"""Dictionaries for IANA MIME Types from File Extensions"""
 
 #"""MAIN METHODS"""
-# Method to get file extension from a file path
+
 def get_extension(filepath):
+    """Method to get file extension from a file path"""
     try:
         file_name_start = filepath.rindex(b"/")
         file_name = filepath[file_name_start:]
@@ -85,28 +85,29 @@ def get_extension(filepath):
         ext = -1
     return ext
 
-# Method to get supported MIME types
 def mime_type(file_ext):
+    """Method to get supported MIME types"""
     try:
         kind = iana_dict[file_ext]
     except:
         kind = None
     return kind
 
-# Method to get local time
 def local_time():
+    """Method to get formatted local time
+    DDD, dd-MM-YYYY hh:mm:ss"""
     dt = datetime.datetime.now().strftime("%a, %d-%b-%Y %H:%M:%S Local-Time")
     return f"{dt}"
 
-# Method to get local time in accordance with HTTP/1.0
 def http_time():
+    """Method to get local time formatted in accordance with HTTP/1.0"""
     dt = datetime.datetime.now(datetime.timezone.utc)
     utc_time = dt.replace(tzinfo=datetime.timezone.utc)
     http_time = utc_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
     return f"{http_time}"
 
-# Method to generate a HTTP/1.0 status line
 def http_1_0_status(code=500, reason=None, version="1.0"): # Need to update if 1.1 but DONT CHANGE the default
+    """Method to generate a HTTP/1.0 status line"""
     version = f"HTTP/{version}"
     fields = [version,code,reason]
     status_str = ""
@@ -122,7 +123,8 @@ def http_1_0_status(code=500, reason=None, version="1.0"): # Need to update if 1
 # HEADER FUNCTIONS
 # By default, most parameters are set to None. If None, those parameters will not be outputted onto the HTTP message.
 # So, when calling these Header functions, make sure to set those parameters to value in line with RFC1945 HTTP/1.0.
-def general_header(pragma=None,time=http_time()):
+def general_header (pragma=None, time=http_time()):
+    """general_header (pragma, time)"""
     header_str = ""
     fields = [time,pragma]
     field_name = ["Time", "Pragma"]
@@ -131,7 +133,8 @@ def general_header(pragma=None,time=http_time()):
             header_str += f"{field_name[fields.index(i)]}: {i}\r\n"
     return f"{header_str}"
 
-def response_header(location=None, authentication=None, server= f"EvanFardinKhoi/0.1"):
+def response_header (location=None, authentication=None, server= f"EvanFardinKhoi/0.1"):
+    """response_header (location, authentication, server)"""
     header_str = ""
     fields = [location,server,authentication]
     field_name = ["Location", "Server","WWW-Authenticate"]
@@ -140,7 +143,8 @@ def response_header(location=None, authentication=None, server= f"EvanFardinKhoi
             header_str += f"{field_name[fields.index(i)]}: {i}\r\n"
     return f"{header_str}"
 
-def entity_header(allow=None, encoding=None, length=None, type=None, expiry=None, last_edit=None, ext=None):
+def entity_header (allow=None, encoding=None, length=None, type=None, expiry=None, last_edit=None, ext=None):
+    """entity_header (allow, encoding, length, type, expiry, last_edit, ext)"""
     header_str = ""
     fields = [allow,encoding,length,type,expiry,last_edit,ext]
     field_name = ["Allow","Content-Encoding","Content-Length","Content-Type","Expires","Last-Modified"]
