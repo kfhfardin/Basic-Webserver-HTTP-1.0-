@@ -30,10 +30,14 @@ Added with open statement to open, read, and close files
 ### Update on 11/10/2022 (1 PM) (Evan and Khoi)<br>
 fixed the inf b'' sending error
 
-# Update on 12/10/2022 (0 AM) (Khoi)<br>
+### Update on 12/10/2022 (0 AM) (Khoi)<br>
 Major updates to: IP & Port check, GET & HEAD methods, MIME type assignment method
 1. Code now checks for loopback IP address. If detected, it'll print out a note on server side.
 2. Code now checks for permission to run on default port 80. If error, server will now be automatically be redirected to the unprivileged_port instead.
 3. Added a method that takes in file extensions and return their corresponding MIME types in accordance with IANA.
 4. Modify GET method to not include Entity-Body when the HEAD method calls it instead.
 5. Added HEAD method, which "is identical to GET except that the server must not return any Entity-Body in the response" (RFC 1945).
+
+# Update on 15-16/10/2022 (Khoi) <br>
+1. If the request-path contains a file-name without an extension, the server now makes a guess and attach an extension according to what is available on the current folder's content
+2. Added Location header
