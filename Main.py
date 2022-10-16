@@ -156,11 +156,47 @@ def entity_header(allow=None, encoding=None, length=None, type=None, expiry=None
 
 # GET Method
 def process_GET(conn,data_ls,HEAD_request=False):
-    # file path    
-    file_directory=b'AllFiles'   
-    response=b''        
+    # file path
+    file_dir = "AllFiles"
+    file_directory = bytes(file_dir.encode(format))
+    response=b''
     # Studies Stripped data for location folder and then send the data back   
-    location_data=data_ls[1]
+    location_req=data_ls[1]
+    location_data = None
+    abs_URI = None
+
+    abs_req_path = bytes(f"{os.getcwd()}/{file_dir}{str(location_req)[2:-1]}".encode(format))
+    # print(f"\n\r-> Request-path processed as:\n\r{abs_req_path}")
+    if os.path.isdir(abs_req_path):
+        # print(f"\n\r-> Requested access to local directory:\n\r{abs_req_path}")
+        name_to_check = None
+        location_data = location_req
+    else:
+        separator = location_req.rindex(b"/")
+        parent_path = location_req[:separator]
+        name_to_check = location_req[separator+1:]
+        abs_parent_path = bytes(f"{os.getcwd()}/{file_dir}{str(parent_path)[2:-1]}".encode(format))
+        # print(f"\n\r-> Requested access to local directory:\n\r{abs_parent_path}")
+        parent_folder = os.listdir(abs_parent_path)
+        # print(f"\n\r---> Checking local directory's contents:\n\r{parent_folder}")
+        file_404 = True
+        for item in parent_folder:
+            try:
+                item_no_ext= bytes(str(item)[2:str(item)[2:-1].rindex(".")+2].encode(format))
+            except:
+                item_no_ext = None
+            if name_to_check in [item, item_no_ext]:
+                file_name = str(item)[2:-1]
+                location_data = bytes(f"{str(parent_path)[2:-1]}/{file_name}".encode(format))
+                file_404 = False
+        if file_404:
+            location_data = location_req
+            print(f"""\n\r-----> "{str(name_to_check)[2:-1]}" does not exist in local directory""")
+        else:
+            print(f"""\n\r-----> "{str(name_to_check)[2:-1]}" exists in local directory as '{file_name}'""")
+
+    http_path = str(location_data)[2:-1].replace(" ","%20")
+    abs_URI = f"http:/{IP}{http_path}"
 
     # check for file type given or not
     file_ext = get_extension(location_data)
@@ -201,7 +237,7 @@ def process_GET(conn,data_ls,HEAD_request=False):
                 status = http_1_0_status(200)
                 response += bytes(f"{status}".encode(format))
                 # This is where we need to find our content types
-                headers = f"{general_header()}{response_header()}{entity_header(type=content_type)}\r\n"  
+                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"  
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
@@ -224,7 +260,7 @@ def process_GET(conn,data_ls,HEAD_request=False):
                 # need to add headers
                 status = http_1_0_status(404)
                 response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header()}{entity_header(type=content_type)}\r\n"
+                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
@@ -250,7 +286,7 @@ def process_GET(conn,data_ls,HEAD_request=False):
             else:                
                 status = http_1_0_status(200)
                 response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header()}{entity_header(type=content_type)}\r\n"
+                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
@@ -273,7 +309,7 @@ def process_GET(conn,data_ls,HEAD_request=False):
             else:               
                 status = http_1_0_status(404)
                 response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header()}{entity_header(type=content_type)}\r\n"
+                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"
                 response += bytes(headers.encode(format))
                 resp_status_headers = response
                 if not HEAD_request:
@@ -325,7 +361,7 @@ def client_process(conn,clientid):
     # request method checks
     # splitting data into parts
     split_data=data.split()
-    print(f"\n\r-> Package processed as:\n\r{repr(split_data)}")
+    # print(f"\n\r-> Package processed as:\n\r{repr(split_data)}")
     # GET check
     if split_data[0]== b'GET':
         process_GET(conn,split_data)        
