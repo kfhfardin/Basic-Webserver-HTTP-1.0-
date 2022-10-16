@@ -39,4 +39,5 @@ Major updates to: IP & Port check, GET & HEAD methods, MIME type assignment meth
 5. Added HEAD method, which "is identical to GET except that the server must not return any Entity-Body in the response" (RFC 1945).
 
 # Update on 15-16/10/2022 (Khoi) <br>
-If the request-path contains a file-name without an extension, the server now makes a guess and attach an extension according to what is available on the current folder's content
+1. If the request-path contains a file-name without an extension, the server now makes a guess and attach an extension according to what is available on the current folder's content
+2. Added Location header
