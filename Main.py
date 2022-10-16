@@ -426,8 +426,8 @@ def main():
             BIND_VAR=(IP,Port)
             web_server.bind(BIND_VAR)
         except:
-            Port=unprivileged_port
-            BIND_VAR=(IP,Port+1)
+            Port=unprivileged_port+1
+            BIND_VAR=(IP,Port)
             web_server.bind(BIND_VAR)
     web_server.listen(True)
     print(f"\n\r\n\rServer is now running.\n\rClients can establish new connections to http://{IP}:{Port}/\n\r")
