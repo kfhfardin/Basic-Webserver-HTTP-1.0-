@@ -158,11 +158,10 @@ def entity_header (allow=None, encoding=None, length=None, type=None, expiry=Non
                 header_str += f"{i}\r\n"
     return f"{header_str}"
 
-
-
-# GET Method 
-def process_GET(conn,data_ls,data,HEAD_request=False): 
-    Windows = (sys.platform=="win32")
+# HTTP METHODS
+def process_GET(conn,data_ls,data,HEAD_request=False):
+    """HTTP/1.0 GET Method"""
+    onWindows = (sys.platform=="win32")
     # file path
     file_dir = "AllFiles"
     file_directory = bytes(file_dir.encode(format))
@@ -172,12 +171,11 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
     location_data = None
     abs_URI = None
 
- 
     abs_req_path_f = f"{os.getcwd()}/{file_dir}{str(location_req)[2:-1]}"
     # print(f"\n\r-> Request-path entered as:\n\r{abs_req_path_f}")
     abs_req_path_f = abs_req_path_f.replace(f"{file_dir}/{file_dir}",f"{file_dir}")
     # print(f"\n\r-> Request-path changed to:\n\r{abs_req_path_f}")
-    if Windows:
+    if onWindows:
         abs_req_path_f = abs_req_path_f.replace(f"/",f"\\")
     abs_req_path = bytes(abs_req_path_f.encode(format))
     # print(f"\n\r-> Request-path processed as:\n\r{abs_req_path}")
@@ -191,7 +189,7 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
         name_to_check = location_req[separator+1:]
         abs_parent_path_f = f"{os.getcwd()}/{file_dir}{str(parent_path)[2:-1]}"
         abs_parent_path_f = abs_parent_path_f.replace(f'{file_dir}/{file_dir}',f'{file_dir}')
-        if Windows:
+        if onWindows:
             abs_parent_path_f = abs_parent_path_f.replace(f"/",f"\\")
         abs_parent_path = bytes(abs_parent_path_f.encode(format))
         print(f"\n\r-> Requested access to local directory:\n\r{abs_parent_path}")
@@ -205,7 +203,7 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
                 item_no_ext = None
             if name_to_check in [item, item_no_ext]:
                 file_name = str(item)[2:-1]
-                if Windows:
+                if onWindows:
                     location_data = bytes(f"{str(parent_path)[2:-1]}\\{file_name}".encode(format))
                 else:
                     location_data = bytes(f"{str(parent_path)[2:-1]}/{file_name}".encode(format))
@@ -222,8 +220,7 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
     # check for file type given or not
     file_ext = get_extension(location_data)
     if file_ext == -1:
-            # add & call separate methods to check and modify file extensions to be .html, .htm, .py, or .php
-            content_type = None # remember to dynamically change this to content_type = mime_type(file_ext) once you're done
+            content_type = None # this happens when server fails to identify the extension
     else:
         content_type = mime_type(file_ext) # this returns None if the file in request is not supported by this server
 
@@ -242,7 +239,7 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
         # try to find data in location
         try: 
             final_location=location_data[location_depth:]  
-            print(f"\n\r---> Requested File Path: {repr(final_location)}")                      
+            print(f"\n\r---> HTTP-Requested path for file: {repr(final_location)}")                      
             with open(final_location,'br') as file:
                 print(f"\n\r---> Server Identified File: {repr(file)}")
                 filedata = file.read()      
@@ -291,7 +288,7 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
     # if only file called      
     else:           
         final_location=file_directory + location_data 
-        print(f"\n\r-> Client Requested File-Location: {repr(final_location)}")
+        print(f"\n\r-> HTTP-Requested path for file: {repr(final_location)}")
         try:   
             with open(final_location,'br') as file:
                 print(f"\n\r---> Server Identified File: {repr(file)}")
@@ -343,13 +340,13 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
         print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
     return
 
-# HEAD method
 def process_HEAD(conn,data_ls,data):
+    """HTTP/1.0 HEAD Method"""
     process_GET(conn,data_ls,data,HEAD_request=True)
 
-# POST Method
 def process_POST(conn,data_ls,data):
-    Windows = (sys.platform=="win32")
+    """HTTP/1.0 POST Method"""
+    onWindows = (sys.platform=="win32")
     file_dir = "AllFiles"
     file_directory = bytes(file_dir.encode(format))
     response=b''
@@ -362,33 +359,34 @@ def process_POST(conn,data_ls,data):
     # print(f"\n\r-> Request-path entered as:\n\r{abs_req_path_f}")
     abs_req_path_f = abs_req_path_f.replace(f"{file_dir}/{file_dir}",f"{file_dir}")
     # print(f"\n\r-> Request-path changed to:\n\r{abs_req_path_f}")
-    if Windows:
+    if onWindows:
         abs_req_path_f = abs_req_path_f.replace(f"/",f"\\")
     abs_req_path = bytes(abs_req_path_f.encode(format))
      # modify on the f string if needed & force new byte string to be new f string encoded
     
-# Method to Receive Data
+# Socket Connection Methods
 def recv_data(conn):
-        data=b''
-        while True:
-            try:
-                temp_data=conn.recv(size)
-                if temp_data == b'':
-                    print(f"\n\r***---> Killed connection -----> {repr(conn.getpeername())} on ({local_time()})")
-                    conn.close()
-                else:
-                    conn_time = http_time()
-                    print(f"\n\r***---> NEW connection est. ---> {repr(conn.getpeername())} on ({conn_time})")
-                data+=temp_data
-                line_end= data.find(b'\r\n\r\n')
-                print(f"\n\r-> Server intercepted on ({local_time()}):\n\r{repr(data)}")
-                if  line_end != -1:
-                        return data[:line_end]
-            except:
-                return -1
+    """Method to Receive Data"""
+    data=b''
+    while True:
+        try:
+            temp_data=conn.recv(size)
+            if temp_data == b'':
+                print(f"\n\r***---> Killed connection -----> {repr(conn.getpeername())} on ({local_time()})")
+                conn.close()
+            else:
+                conn_time = http_time()
+                print(f"\n\r***---> NEW connection est. ---> {repr(conn.getpeername())} on ({conn_time})")
+            data+=temp_data
+            line_end= data.find(b'\r\n\r\n')
+            print(f"\n\r-> Server intercepted on ({local_time()}):\n\r{repr(data)}")
+            if  line_end != -1:
+                    return data[:line_end]
+        except:
+            return -1
     
-# Method to Process CLient
 def client_process(conn,clientid):
+    """Method to Process CLient"""
     data=recv_data(conn)
     print(f"\n\r-> Package received on ({local_time()}):\n\r{repr(data)}")
     if data == -1:
@@ -411,11 +409,10 @@ def client_process(conn,clientid):
     # closing connection
     print(f"\n\r***---> Closed connection --x--> {repr(clientid)} on ({local_time()})")
     conn.close()
-    
-       
-    
-# Method to start connection
-def main():    
+
+# Main body
+def main():
+    """Main method to start connection"""
     # creating Seperate Threads       
     web_server=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     try:
@@ -438,5 +435,6 @@ def main():
         conn,clientid=web_server.accept()
         new_client1=threading.Thread(target=client_process,args=(conn,clientid))
         new_client1.start()
+
 
 main()
