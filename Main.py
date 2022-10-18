@@ -363,7 +363,11 @@ def process_POST(conn,data_ls,data):
         abs_req_path_f = abs_req_path_f.replace(f"/",f"\\")
     abs_req_path = bytes(abs_req_path_f.encode(format))
      # modify on the f string if needed & force new byte string to be new f string encoded
-    
+
+def process_ERROR(conn,data_ls,data):
+    x=0
+    # need to send a 500 error here if a request is not recognised
+
 # Socket Connection Methods
 def recv_data(conn):
     """Method to Receive Data"""
@@ -397,15 +401,16 @@ def client_process(conn,clientid):
     # splitting data into parts
     split_data=data.split()
     # print(f"\n\r-> Package processed as:\n\r{repr(split_data)}")
-    # GET check
     if split_data[0]== b'GET':
-        process_GET(conn,split_data,data)        
-    # HEAD check    
-    if split_data[0]== b'HEAD':
-        process_HEAD(conn,split_data,data) 
-    # POST check    
-    if split_data[0]== b'POST':
+        process_GET(conn,split_data,data)
+    # HEAD check
+    elif split_data[0]== b'HEAD':
+        process_HEAD(conn,split_data,data)
+    # POST check
+    elif split_data[0]== b'POST':
         process_POST(conn,split_data,data)
+    else:
+        process_ERROR(conn,split_data,data)
     # closing connection
     print(f"\n\r***---> Closed connection --x--> {repr(clientid)} on ({local_time()})")
     conn.close()
