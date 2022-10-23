@@ -5,6 +5,7 @@ import socket
 import threading
 import os
 import sys
+import subprocess
 import datetime
 #Variables
 #IP=socket.gethostbyname("localhost") #IP Address
@@ -74,12 +75,35 @@ iana_dict = {**txt_std_ext, **app_std_ext, **audio_std_ext, **img_std_ext, **vid
 """Dictionaries for IANA MIME Types from File Extensions"""
 
 #"""MAIN METHODS"""
+#CGI Methods
+def get_php_file(conn,data_ls,data):
+    print(data_ls)
+    print(data)
+    # final_location_data=""
+    # my_temp_env=os.environ.copy()
+    # #MAKE THE lOCATION SPECIFIC TO CGI    
+    # my_temp_env["SCRIPT_NAME"]=final_location_data
+    # my_temp_env["REQUEST_METHOD"]="GET"
+    # #my_temp_env["SERVER_NAME"]= SERVER_IP ADDRESS
+    # #my_temp_env["CONTENT_LENGTH"]=might not be neccessary
+    # #my_temp_env["CONTENT_TYPE"]=php MIME
+    # #my_temp_env["QUERY_STRING"]=everything after question mark
+    # #my_temp_env["GATEWAY_INTERFACE"]= "CGI/1.1"
+    # #my_temp_env["REMOTE_ADDR"]= CLIENT ip ADDRESS
+    # #my_temp_env["SERVER_PORT"]= port
+    # #my_temp_env["SERVER_PROTOCOL"]= http VARIABLE
+    # #my_temp_env["SERVER_SOFTWARE"]= "Server Name"            
+    # php_data=subprocess.run(["C:\\Users\\kfhfa\\Desktop\\PHP\\php-cgi"],env=my_temp_env,capture_output=True)
+    # conn.recv(php_data.stdout)
+    # #location of PHP:"C:\\Users\\kfhfa\\Desktop\\PHP\\php-cgi"
+
 
 def get_extension(filepath):
     """Method to get file extension from a file path"""
     try:
         file_name_start = filepath.rindex(b"/")
-        file_name = filepath[file_name_start:]
+        print(file_name_start)
+        file_name = filepath[file_name_start:]        
         ext_start = str(file_name).rindex(".")
         ext_end = str(file_name).rindex("'")
         ext = str(file_name)[ext_start:ext_end]
@@ -170,6 +194,8 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
     location_req=data_ls[1]
     location_data = None
     abs_URI = None
+    content_length=None
+
 
     abs_req_path_f = f"{os.getcwd()}/{file_dir}{str(location_req)[2:-1]}"
     # print(f"\n\r-> Request-path entered as:\n\r{abs_req_path_f}")
@@ -218,6 +244,7 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
     abs_URI = f"http:/{IP}{http_path}"
 
     # check for file type given or not
+    print(location_data)
     file_ext = get_extension(location_data)
     if file_ext == -1:
             content_type = None # this happens when server fails to identify the extension
@@ -226,118 +253,125 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
 
     # add if and else statements
     # address given check
-
-    # HTTP 0.9 check
-    try:
-        http_0_9 = b'HTTP' not in data_ls[2]
-    except:
-        http_0_9 = True
     
-    location_depth=location_data.find(file_directory)
-    if location_depth != -1:
-        # temp_data=location_data[location_depth:]
-        # try to find data in location
-        try: 
-            final_location=location_data[location_depth:]  
-            print(f"\n\r---> HTTP-Requested path for file: {repr(final_location)}")                      
-            with open(final_location,'br') as file:
-                print(f"\n\r---> Server Identified File: {repr(file)}")
-                filedata = file.read()      
-            
-            if http_0_9:  
-                resp_status_headers = str(response)
-                if not HEAD_request: # Might need POST here so wait on this
-                    response += bytes(filedata.encode(format))
-                response += b'\r\n\r\n'
-                conn.send(response)
-            else:                
-                # need to add headers
-                status = http_1_0_status(200)
-                response += bytes(f"{status}".encode(format))
-                # This is where we need to find our content types
-                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"  
-                response += bytes(headers.encode(format))
-                resp_status_headers = response
-                if not HEAD_request:
-                    response += filedata
-                response += b'\r\n\r\n'
-                conn.send(response)
-        # if file not found send 404 response
+    if file_ext == ".php":
+        get_php_file(conn,data_ls,data)
+    elif file_ext == ".py":
+        x=0
+    else:
+        # HTTP 0.9 check
+        try:
+            http_0_9 = b'HTTP' not in data_ls[2]
         except:
-            final_location=file_directory + b'/404.html'
-            with open(final_location,'br') as file:
-                print(f"\n\r---> Server Identified File: {repr(file)}")
-                filedata = file.read()        
-            if http_0_9:  
-                resp_status_headers = str(response)
-                if not HEAD_request:
-                    response += filedata
-                response += b'\r\n\r\n'           
-                conn.send(response)
-            else:                
-                # need to add headers
-                status = http_1_0_status(404)
-                response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"
-                response += bytes(headers.encode(format))
-                resp_status_headers = response
-                if not HEAD_request:
-                    response += filedata
-                response += b'\r\n\r\n'            
-                conn.send(response)    
-    # if only file called      
-    else:           
-        final_location=file_directory + location_data 
-        print(f"\n\r-> HTTP-Requested path for file: {repr(final_location)}")
-        try:   
-            with open(final_location,'br') as file:
-                print(f"\n\r---> Server Identified File: {repr(file)}")
-                filedata = file.read()
-            print(f"\n\r------> File-Content extracted successfully!")
+            http_0_9 = True
+        
+        location_depth=location_data.find(file_directory)
+        if location_depth != -1:
+            # temp_data=location_data[location_depth:]
+            # try to find data in location
+            try: 
+                final_location=location_data[location_depth:]  
+                print(f"\n\r---> HTTP-Requested path for file: {repr(final_location)}")                      
+                with open(final_location,'br') as file:
+                    print(f"\n\r---> Server Identified File: {repr(file)}")
+                    filedata = file.read()   
+                    content_length=len(filedata)   
+                
+                if http_0_9:  
+                    resp_status_headers = str(response)
+                    if not HEAD_request: # Might need POST here so wait on this
+                        response += bytes(filedata.encode(format))
+                    response += b'\r\n\r\n'
+                    conn.send(response)
+                else:                
+                    # need to add headers
+                    status = http_1_0_status(200)
+                    response += bytes(f"{status}".encode(format))
+                    # This is where we need to find our content types
+                    headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type,length=content_length)}\r\n" 
+                    response += bytes(headers.encode(format))
+                    resp_status_headers = response
+                    if not HEAD_request:
+                        response += filedata
+                    response += b'\r\n\r\n'
+                    conn.send(response)
+            # if file not found send 404 response
+            except:
+                final_location=file_directory + b'/404.html'
+                with open(final_location,'br') as file:
+                    print(f"\n\r---> Server Identified File: {repr(file)}")
+                    filedata = file.read()        
+                if http_0_9:  
+                    resp_status_headers = str(response)
+                    if not HEAD_request:
+                        response += filedata
+                    response += b'\r\n\r\n'           
+                    conn.send(response)
+                else:                
+                    # need to add headers
+                    status = http_1_0_status(404)
+                    response += bytes(f"{status}".encode(format))
+                    headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type,length=content_length)}\r\n"
+                    response += bytes(headers.encode(format))
+                    resp_status_headers = response
+                    if not HEAD_request:
+                        response += filedata
+                    response += b'\r\n\r\n'            
+                    conn.send(response)    
+        # if only file called      
+        else:           
+            final_location=file_directory + location_data 
+            print(f"\n\r-> HTTP-Requested path for file: {repr(final_location)}")
+            try:   
+                with open(final_location,'br') as file:
+                    print(f"\n\r---> Server Identified File: {repr(file)}")
+                    filedata = file.read()
+                print(f"\n\r------> File-Content extracted successfully!")
 
-            if http_0_9:  
-                resp_status_headers = str(response)
-                if not HEAD_request:
-                    response += filedata
-                response += b'\r\n\r\n'       
-                conn.send(response)
-            else:                
-                status = http_1_0_status(200)
-                response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"
-                response += bytes(headers.encode(format))
-                resp_status_headers = response
-                if not HEAD_request:
-                    response += (filedata)
-                response += b'\r\n\r\n'            
-                conn.send(response)
-        except:
-            print(f"\n\r------> File NOT located!")
-            final_location=file_directory + b'/404.html'
-            with open(final_location,'br') as file:
-                print(f"\n\r---> Server Identified File: {repr(file)}")
-                filedata = file.read()      
-            
-            if http_0_9:  
-                resp_status_headers = str(response)
-                if not HEAD_request:
-                    response += filedata
-                response += b'\r\n\r\n'
-                conn.send(response)
-            else:               
-                status = http_1_0_status(404)
-                response += bytes(f"{status}".encode(format))
-                headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type)}\r\n"
-                response += bytes(headers.encode(format))
-                resp_status_headers = response
-                if not HEAD_request:
-                    response += filedata
-                response += b'\r\n\r\n'            
-                conn.send(response)               
-    if not HEAD_request:
-        print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\\r\\n\\r\\n")
-    elif HEAD_request:
-        print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
+                if http_0_9:  
+                    resp_status_headers = str(response)
+                    if not HEAD_request:
+                        response += filedata
+                    response += b'\r\n\r\n'       
+                    conn.send(response)
+                else:                
+                    status = http_1_0_status(200)
+                    response += bytes(f"{status}".encode(format))
+                    headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type,length=content_length)}\r\n"
+                    response += bytes(headers.encode(format))
+                    resp_status_headers = response
+                    if not HEAD_request:
+                        response += (filedata)
+                    response += b'\r\n\r\n'            
+                    conn.send(response)
+            except:
+                print(f"\n\r------> File NOT located!")
+                final_location=file_directory + b'/404.html'
+                with open(final_location,'br') as file:
+                    print(f"\n\r---> Server Identified File: {repr(file)}")
+                    filedata = file.read()    
+                    content_length=len(filedata)     
+                
+                if http_0_9:  
+                    resp_status_headers = str(response)
+                    if not HEAD_request:
+                        response += filedata
+                    response += b'\r\n\r\n'
+                    conn.send(response)
+                else:               
+                    status = http_1_0_status(404)
+                    response += bytes(f"{status}".encode(format))
+                    headers = f"{general_header()}{response_header(location=abs_URI)}{entity_header(type=content_type,length=content_length)}\r\n"
+                    response += bytes(headers.encode(format))
+                    resp_status_headers = response
+                    if not HEAD_request:
+                        response += filedata
+                    response += b'\r\n\r\n'            
+                    conn.send(response)               
+        if not HEAD_request:
+            print(f"\n\r-> Server responded on ({local_time()})::\n\r{resp_status_headers}{file}\\r\\n\\r\\n")
+        elif HEAD_request:
+            print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
     return
 
 def process_HEAD(conn,data_ls,data):
