@@ -18,6 +18,31 @@ unprivileged_port=2021 #Port for unprivileged users
 BIND_VAR=(IP,Port) #Bind variables for Socket Use Later
 size=1024 #data receive size
 format="utf-8"
+# replace HTTP escape characters
+HTTP_esc_dict = {
+    '%20': ' ',
+    '%3C': '<',
+    '%3E': '>',
+    '%23': '#',
+    '%25': '%',
+    '%2B': '+',
+    '%7B': '{',
+    '%7D': '}',
+    '%7C': '|',
+    '%5C': '\\',
+    '%5E': '^',
+    '%7E': '~',
+    '%5B': '[',
+    '%5D': ']',
+    '%60': "'",
+    '%3B': ';',
+    '%3F': '?',
+    '%3A': ':',
+    '%40': '@',
+    '%3D': '=',
+    '%26': '&',
+    '%24': '$',
+}
 
 txt_std_ext={
     ".js":"text/javascript",
@@ -240,7 +265,9 @@ def process_GET(conn,data_ls,data,HEAD_request=False):
         else:
             print(f"""\n\r-----> "{str(name_to_check)[2:-1]}" exists in local directory as '{file_name}'""")
 
-    http_path = str(location_data)[2:-1].replace(" ","%20")
+    http_path = str(location_data)[2:-1]
+    for esc_char in HTTP_esc_dict:
+        http_path = http_path.replace(HTTP_esc_dict[esc_char], esc_char)
     abs_URI = f"http:/{IP}{http_path}"
 
     # check for file type given or not
@@ -397,7 +424,19 @@ def process_POST(conn,data_ls,data):
         abs_req_path_f = abs_req_path_f.replace(f"/",f"\\")
     abs_req_path = bytes(abs_req_path_f.encode(format))
      # modify on the f string if needed & force new byte string to be new f string encoded
-    
+
+def process_ERROR(conn,data_ls,data):
+    # need to send a 500 error here if a request is not recognised
+    reason = 'Feature Not Implemented. Client has requested a response not yet available from server.'
+    status = http_1_0_status(501,reason=reason)
+    response += bytes(f"{status}".encode(format))
+    # This is where we need to find our content types
+    headers = f"{general_header()}{response_header()}{entity_header()}\r\n"  
+    response += bytes(headers.encode(format))
+    response += b'\r\n\r\n'
+    conn.send(response)
+    print(f"\n\r-> Server responded on ({local_time()})::\n\r{response}")
+
 # Socket Connection Methods
 def recv_data(conn):
     """Method to Receive Data"""
@@ -418,7 +457,7 @@ def recv_data(conn):
                     return data[:line_end]
         except:
             return -1
-    
+
 def client_process(conn,clientid):
     """Method to Process CLient"""
     data=recv_data(conn)
@@ -427,19 +466,25 @@ def client_process(conn,clientid):
         conn.close()
         print(f"\n\r{repr(clientid)} has disconnected on {http_time()}")
         return
+    f_data = str(data)[2:-1].replace('\\\\','\\')
+    for esc_char in HTTP_esc_dict:
+        f_data = f_data.replace(esc_char, HTTP_esc_dict[esc_char])
+    print(f"\n\r---> Package translated as: \n\r{f_data}")
+    data = bytes(f_data.encode(format))
     # request method checks
     # splitting data into parts
     split_data=data.split()
     # print(f"\n\r-> Package processed as:\n\r{repr(split_data)}")
-    # GET check
     if split_data[0]== b'GET':
-        process_GET(conn,split_data,data)        
-    # HEAD check    
-    if split_data[0]== b'HEAD':
-        process_HEAD(conn,split_data,data) 
-    # POST check    
-    if split_data[0]== b'POST':
+        process_GET(conn,split_data,data)
+    # HEAD check
+    elif split_data[0]== b'HEAD':
+        process_HEAD(conn,split_data,data)
+    # POST check
+    elif split_data[0]== b'POST':
         process_POST(conn,split_data,data)
+    else:
+        process_ERROR(conn,split_data,data)
     # closing connection
     print(f"\n\r***---> Closed connection --x--> {repr(clientid)} on ({local_time()})")
     conn.close()
@@ -465,7 +510,7 @@ def main():
     if IP=='127.0.0.1':
         print(f"The current host IP is a loopback address, so only this machine can connect to the current server.\n\rPlease manually check for your IPv4 address then enter it to if-statement for IP address on line 10.\n\r")
     # infinite loop for accepting clients
-    while True: 
+    while True:
         conn,clientid=web_server.accept()
         new_client1=threading.Thread(target=client_process,args=(conn,clientid))
         new_client1.start()
