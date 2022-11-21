@@ -41,3 +41,9 @@ Major updates to: IP & Port check, GET & HEAD methods, MIME type assignment meth
 # Update on 15-16/10/2022 (Khoi) <br>
 1. If the request-path contains a file-name without an extension, the server now makes a guess and attach an extension according to what is available on the current folder's content
 2. Added Location header
+
+# Update on 20/10/2022 (Fardin) <br>
+1. Basic CGI
+2. Query String CGI test Passed
+3. Browser Test CGI Passed
+4. Extended Path Test CGI Passed

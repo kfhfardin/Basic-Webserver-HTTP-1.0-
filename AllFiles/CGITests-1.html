@@ -1,0 +1,27 @@
+<HTML>
+<HEAD>
+<TITLE>CGI/PHP Tests</TITLE>
+</HEAD>
+<BODY>
+<P>
+The following tests can be used to check that your web server can run PHP scripts, and that have you correctly implemented CGI:
+</P>
+
+<FORM action="qstest.php" method="get">
+<input type="hidden" name="get_test1" value="test1 pass">
+<input type="hidden" name="get_test2" value="test2 pass">
+<input type="submit" value="Click here to run CGI Test 1: Query String Test">
+</FORM>
+
+<FORM action="posttest.php" method="post">
+<input type="hidden" name="post_test1" value="test1 pass">
+<input type="hidden" name="post_test2" value="test2 pass">
+<input type="submit" value="Click here to run CGI Test 2: Post Method Test">
+</FORM>
+
+<A HREF="pathtest.php/this/is/a/test"> Click here to run CGI Test 3: Extended Path Test</A>
+<BR>
+<A HREF="browsertest.php"> Click here to run CGI Test 4: Browser Identification Test</A>
+
+</BODY>
+</HTML>
